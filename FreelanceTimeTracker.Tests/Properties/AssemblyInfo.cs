@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("FreelanceTimeTracker")]
+[assembly: AssemblyTitle("FreelanceTimeTracker.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("FreelanceTimeTracker")]
+[assembly: AssemblyProduct("FreelanceTimeTracker.Tests")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("976d100c-3b44-43be-8d38-4b4c16cb3a74")]
+[assembly: Guid("ebe301b4-4888-474c-abf8-607b618c2714")]
 
 // Version information for an assembly consists of the following four values:
 //
