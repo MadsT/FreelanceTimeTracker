@@ -97,7 +97,7 @@ namespace FreelanceTimeTracker.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Edit([Bind(Include = "ClientID,ClientName,Address")] Client client)
+        public ActionResult Edit([Bind(Include = "ClientID,ClientName,Address,ClientOwner")] Client client)
         {
             var userName = User.Identity.GetUserName();
             if(!client.ClientOwner.Equals(userName))

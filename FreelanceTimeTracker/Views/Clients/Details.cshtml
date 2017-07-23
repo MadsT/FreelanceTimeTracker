@@ -31,13 +31,10 @@
         </dt>
         <dd>
             <table class="table">
-                <tr>
-                    <th>Projects at client</th>
-                </tr>
                 @foreach(var item in Model.Projects){ 
                  <tr>
                      <td>
-                         @Html.DisplayNameFor(modelItem => item.ProjectName)
+                         @Html.ActionLink(item.ProjectName, "Details", "Projects", new { Id = item.ProjectID }, null)
                      </td>
                  </tr>
                 }

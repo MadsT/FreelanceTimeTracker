@@ -97,7 +97,7 @@ namespace FreelanceTimeTracker.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Edit([Bind(Include = "ServiceiD,ServiceName,Price")] Service service)
+        public ActionResult Edit([Bind(Include = "ServiceiD,ServiceName,Price,ServiceOwner")] Service service)
         {
             var userName = User.Identity.GetUserName();
             if (!service.ServiceOwner.Equals(userName))
