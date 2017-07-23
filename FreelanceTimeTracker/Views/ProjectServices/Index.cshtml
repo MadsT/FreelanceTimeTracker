@@ -15,10 +15,19 @@
             @Html.DisplayNameFor(model => model.Project.ProjectName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Service.ServiceOwner)
+            @Html.DisplayNameFor(model => model.Project.Client.ClientName)
+        </th>
+        <th>
+            Service Performed
         </th>
         <th>
             @Html.DisplayNameFor(model => model.HoursWorked)
+        </th>
+        <th>
+            Price per Hour
+        </th>
+        <th>
+            Total Price
         </th>
         <th></th>
     </tr>
@@ -29,10 +38,19 @@
             @Html.DisplayFor(modelItem => item.Project.ProjectName)
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.Service.ServiceOwner)
+            @Html.DisplayFor(modelItem => item.Project.Client.ClientName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Service.ServiceName)
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.HoursWorked)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Service.Price)
+        </td>
+        <td>
+            @(item.HoursWorked * item.Service.Price)
         </td>
         <td>
             @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |

@@ -14,11 +14,22 @@
     <div class="form-horizontal">
         <h4>ProjectService</h4>
         <hr />
+        @Html.HiddenFor(model => model.Project.ProjectID)
+        @Html.HiddenFor(model => model.Service.ServiceiD)
+
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Project.Client.ClientName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("ClientName", null, "Select a client", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ProjectId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
         <div class="form-group">
             @Html.LabelFor(model => model.Project, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownList("ProjectId", null, htmlAttributes: new { @class = "form-control" })
+                @Html.DropDownList("ProjectId", new SelectList(string.Empty, "Value", "Text"), "Please select a client", htmlAttributes: new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.ProjectId, "", new { @class = "text-danger" })
             </div>
         </div>
@@ -26,7 +37,7 @@
         <div class="form-group">
             @Html.LabelFor(model => model.ServiceID, "ServiceID", htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownList("ServiceID", null, htmlAttributes: new { @class = "form-control" })
+                @Html.DropDownList("ServiceID", null, "Select a service", htmlAttributes: new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.ServiceID, "", new { @class = "text-danger" })
             </div>
         </div>
@@ -53,4 +64,34 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        //Dropdownlist Selectedchange event
+        $("#ClientName").change(function () {
+            $("#ProjectId").empty();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("PopulateProjectListInCreate")', 
+
+                dataType: 'json',
+
+                data: { selectedClientId: $("#ClientName").val() },
+
+                success: function (projects) {
+
+                    $.each(JSON.parse(projects), function (i, project) {
+                        $("#ProjectId").append('<option value="' + project.ProjectID + '">' + project.ProjectName + '</option>');
+                    
+                    });
+                },
+                error: function (ex) {
+                    alert('Failed to retrieve projects.' + ex);
+                }
+            });
+            return false;
+        })
+    });
+</script>  
 }
