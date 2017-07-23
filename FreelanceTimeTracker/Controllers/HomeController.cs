@@ -13,17 +13,25 @@ namespace FreelanceTimeTracker.Controllers
             return View();
         }
 
-        public ActionResult About()
+        [Authorize]
+        public ActionResult MyClients()
         {
             ViewBag.Message = "Your application description page.";
 
             return View();
         }
 
-        public ActionResult Contact()
+        [Authorize]
+        public ActionResult TrackTime()
         {
             ViewBag.Message = "Your contact page.";
 
+            return View();
+        }
+
+        [Authorize]
+        public ActionResult MyServices()
+        {
             return View();
         }
     }
