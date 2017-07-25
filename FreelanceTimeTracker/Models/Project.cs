@@ -13,6 +13,7 @@ namespace FreelanceTimeTracker.Models
         public int ClientID { get; set; }
 
         public virtual Client Client { get; set; }
+        [Required]
         public string SelectedClient { get; set; }
 
         [Required]

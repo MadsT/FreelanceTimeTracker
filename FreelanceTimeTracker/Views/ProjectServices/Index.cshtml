@@ -1,7 +1,7 @@
-﻿@model IEnumerable<FreelanceTimeTracker.Models.ProjectService>
+﻿@model IEnumerable<FreelanceTimeTracker.Models.ProjectServiceViewModel>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Tracked Time";
 }
 
 <h2>Index</h2>
@@ -27,7 +27,7 @@
             Price per Hour
         </th>
         <th>
-            Total Price
+            @Html.DisplayNameFor(model => model.TotalPrice)
         </th>
         <th></th>
     </tr>
@@ -50,12 +50,11 @@
             @Html.DisplayFor(modelItem => item.Service.Price)
         </td>
         <td>
-            @(item.HoursWorked * item.Service.Price)
+            @Html.DisplayFor(modelItem => item.TotalPrice)
         </td>
         <td>
-            @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            @Html.ActionLink("Edit", "Edit", new { ProjectId = item.ProjectId,  ServiceID = item.ServiceID }) |
+            @Html.ActionLink("Delete", "Delete", new { ProjectId = item.ProjectId, ServiceID = item.ServiceID })
         </td>
     </tr>
 }

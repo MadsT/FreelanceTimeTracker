@@ -17,33 +17,35 @@ namespace FreelanceTimeTracker.Controllers
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: ProjectServices
+        [Authorize]
         public ActionResult Index()
         {
             var userName = User.Identity.GetUserName();
 
             var projectServices = db.Projects
                                     .Where(p => p.Client.ClientOwner.Equals(userName))
-                                    .SelectMany(p => p.ProjectServices.Select(ps => ps));
+                                    .SelectMany(p => p.ProjectServices.Select(ps => ps)).ToList();
+            List<ProjectServiceViewModel> projectServiceVMList = new List<ProjectServiceViewModel>(projectServices.Count());
 
-            return View(projectServices.ToList());
-        }
 
-        // GET: ProjectServices/Details/5
-        public ActionResult Details(int? id)
-        {
-            if (id == null)
+            foreach(ProjectService ps in projectServices)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                ProjectServiceViewModel psvm = new ProjectServiceViewModel();
+                psvm.ProjectId = ps.ProjectId;
+                psvm.ServiceID = ps.ServiceID;
+                psvm.Project = ps.Project;
+                psvm.Service = ps.Service;
+                psvm.HoursWorked = ps.HoursWorked;
+                psvm.TotalPrice = ps.HoursWorked * psvm.Service.Price;
+
+                projectServiceVMList.Add(psvm);
             }
-            ProjectService projectService = db.ProjectServices.Find(id);
-            if (projectService == null)
-            {
-                return HttpNotFound();
-            }
-            return View(projectService);
+
+            return View(projectServiceVMList);
         }
 
         // GET: ProjectServices/Create
+        [Authorize]
         public ActionResult Create()
         {
             var userName = User.Identity.GetUserName();
@@ -57,6 +59,7 @@ namespace FreelanceTimeTracker.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public ActionResult Create([Bind(Include = "ProjectId,ServiceID,HoursWorked")] ProjectService projectService)
         {
 
@@ -73,13 +76,14 @@ namespace FreelanceTimeTracker.Controllers
         }
 
         // GET: ProjectServices/Edit/5
-        public ActionResult Edit(int? id)
+        [Authorize]
+        public ActionResult Edit(int? ProjectId, int? ServiceID)
         {
-            if (id == null)
+            if (ProjectId == null || ServiceID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            ProjectService projectService = db.ProjectServices.Find(id);
+            ProjectService projectService = GetProjectService(ProjectId, ServiceID);
             if (projectService == null)
             {
                 return HttpNotFound();
@@ -94,6 +98,7 @@ namespace FreelanceTimeTracker.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public ActionResult Edit([Bind(Include = "ProjectId,ServiceID,HoursWorked")] ProjectService projectService)
         {
             if (ModelState.IsValid)
@@ -108,13 +113,14 @@ namespace FreelanceTimeTracker.Controllers
         }
 
         // GET: ProjectServices/Delete/5
-        public ActionResult Delete(int? id)
+        [Authorize]
+        public ActionResult Delete(int? ProjectId, int? ServiceID)
         {
-            if (id == null)
+            if (ProjectId == null || ServiceID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            ProjectService projectService = db.ProjectServices.Find(id);
+            ProjectService projectService = GetProjectService(ProjectId, ServiceID);
             if (projectService == null)
             {
                 return HttpNotFound();
@@ -125,6 +131,7 @@ namespace FreelanceTimeTracker.Controllers
         // POST: ProjectServices/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public ActionResult DeleteConfirmed(int id)
         {
             ProjectService projectService = db.ProjectServices.Find(id);
@@ -133,7 +140,7 @@ namespace FreelanceTimeTracker.Controllers
             return RedirectToAction("Index");
         }
 
-
+        [Authorize]
         public ActionResult PopulateProjectListInCreate(int selectedClientId)
         {
             var _jsonSettings = new JsonSerializerSettings()
@@ -158,6 +165,15 @@ namespace FreelanceTimeTracker.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+
+        private ProjectService GetProjectService(int? ProjectId, int? ServiceID)
+        {
+            if(ProjectId == null || ServiceID == null)
+            {
+                return null;
+            }
+           return db.ProjectServices.Where(ps => ps.ProjectId == ProjectId && ps.ServiceID == ServiceID).ToList()[0];
         }
     }
 }
