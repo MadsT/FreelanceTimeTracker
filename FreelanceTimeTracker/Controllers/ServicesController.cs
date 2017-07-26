@@ -8,22 +8,34 @@ using System.Web;
 using System.Web.Mvc;
 using FreelanceTimeTracker.Models;
 using Microsoft.AspNet.Identity;
+using Moq;
 
 namespace FreelanceTimeTracker.Controllers
 {
     public class ServicesController : Controller
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        private IServicesRepository _repository;
+        public Func<string> GetUserName;
+
+
+        public ServicesController()
+        {
+            _repository = new ServiceRepository(new ApplicationDbContext());
+            GetUserName = () => User.Identity.GetUserName();
+        }
+
+        public ServicesController(IServicesRepository repository)
+        {
+            _repository = repository;
+        }
 
         // GET: Services
         [Authorize]
         public ActionResult Index()
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
-            var services = from s in db.Services select s;
-
-            services = services.Where(s => s.ServiceOwner.Equals(userName));
+            List<Service> services = _repository.GetServicesForUserName(userName);
 
             return View(services);
         }
@@ -32,13 +44,13 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Details(int? id)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Service service = db.Services.Find(id);
+            Service service = _repository.GetServiceById(id);
             if (service == null || !service.ServiceOwner.Equals(userName))
             {
                 return HttpNotFound();
@@ -61,12 +73,11 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Create([Bind(Include = "ServiceiD,ServiceName,Price")] Service service)
         {
-            service.ServiceOwner = User.Identity.GetUserName();
+            service.ServiceOwner = GetUserName();
 
             if (ModelState.IsValid)
             {
-                db.Services.Add(service);
-                db.SaveChanges();
+                _repository.AddService(service);
                 return RedirectToAction("Index");
             }
 
@@ -77,13 +88,13 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Edit(int? id)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Service service = db.Services.Find(id);
+            Service service = _repository.GetServiceById(id);
             if (service == null || !service.ServiceOwner.Equals(userName))
             {
                 return HttpNotFound();
@@ -99,15 +110,14 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Edit([Bind(Include = "ServiceiD,ServiceName,Price,ServiceOwner")] Service service)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
             if (!service.ServiceOwner.Equals(userName))
             {
                 return View(service);
             }
             if (ModelState.IsValid)
             {
-                db.Entry(service).State = EntityState.Modified;
-                db.SaveChanges();
+                _repository.UpdateService(service);
                 return RedirectToAction("Index");
             }
             return View(service);
@@ -117,13 +127,13 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Delete(int? id)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Service service = db.Services.Find(id);
+            Service service = _repository.GetServiceById(id);
             if (service == null || !service.ServiceOwner.Equals(userName))
             {
                 return HttpNotFound();
@@ -137,23 +147,76 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult DeleteConfirmed(int id)
         {
-            var userName = User.Identity.GetUserName();
-            Service service = db.Services.Find(id);
+            var userName = GetUserName();
+            Service service = _repository.GetServiceById(id);
             if (service.ServiceOwner.Equals(userName))
             {
-                db.Services.Remove(service);
-                db.SaveChanges();
+                _repository.DeleteService(service);
             }
             return RedirectToAction("Index");
         }
 
-        protected override void Dispose(bool disposing)
+        public static ServicesController CreateServicesControllerAs(string userName, IServicesRepository repository)
         {
-            if (disposing)
+            var mock = new Mock<ControllerContext>();
+            var controller = new ServicesController(repository)
             {
-                db.Dispose();
+                GetUserName = () => userName
+            };
+
+
+            controller.ControllerContext = mock.Object;
+            return controller;
+        }
+
+        public interface IServicesRepository
+        {
+            List<Service> GetServicesForUserName(string userName);
+            Service GetServiceById(int? clientId);
+            void AddService(Service service);
+            void UpdateService(Service service);
+            void DeleteService(Service service);
+        }
+
+        public class ServiceRepository : IServicesRepository
+        {
+            private ApplicationDbContext _context;
+
+            public ServiceRepository(ApplicationDbContext context)
+            {
+                _context = context;
             }
-            base.Dispose(disposing);
+
+            public void AddService(Service service)
+            {
+                _context.Services.Add(service);
+                _context.SaveChanges();
+            }
+
+            public void DeleteService(Service service)
+            {
+                _context.Services.Remove(service);
+                _context.SaveChanges();
+            }
+
+            public List<Service> GetServicesForUserName(string userName)
+            {
+
+                var services = from s in _context.Services select s;
+
+                return services.Where(s => s.ServiceOwner.Equals(userName)).ToList();
+            }
+
+            public Service GetServiceById(int? serviceId)
+            {
+                return _context.Services.Find(serviceId);
+            }
+
+            public void UpdateService(Service service)
+            {
+                _context.Entry(service).State = EntityState.Modified;
+                _context.SaveChanges();
+            }
         }
     }
 }
