@@ -13,16 +13,28 @@ namespace FreelanceTimeTracker.Controllers
 {
     public class ProjectsController : Controller
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        private IProjectRepository _repository;
+        public Func<string> GetUserName;
+
+
+        public ProjectsController()
+        {
+            _repository = new ProjectRepository(new ApplicationDbContext());
+            GetUserName = () => User.Identity.GetUserName();
+        }
+
+        public ProjectsController(IProjectRepository repository)
+        {
+            _repository = repository;
+        }
 
         // GET: Projects
         [Authorize]
         public ActionResult Index()
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
-            var projects = from p in db.Projects select p;
-            var thisUsersProjects = projects.Where(p => p.Client.ClientOwner.Equals(userName));
+            List<Project> thisUsersProjects = _repository.GetProjectsForUserName(userName);
 
             return View(thisUsersProjects);
         }
@@ -31,13 +43,13 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Details(int? id)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Project project = db.Projects.Find(id);
+            Project project = _repository.GetProjectById(id);
             if (project == null || !project.Client.ClientOwner.Equals(userName))
             {
                 return HttpNotFound();
@@ -49,10 +61,10 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Create()
         {
-            var usersClients = GetUsersClients();
+            var userName = GetUserName();
+            var usersClients = _repository.GetClientsForUserName(userName);
 
             var projectModel = new Project();
-
             projectModel.Clients = GetSelectedListItems(usersClients);
 
             return View(projectModel);
@@ -71,8 +83,7 @@ namespace FreelanceTimeTracker.Controllers
 
             if (ModelState.IsValid)
             {
-                db.Projects.Add(project);
-                db.SaveChanges();
+                _repository.AddProject(project);
                 return RedirectToAction("Index");
             }
 
@@ -83,13 +94,13 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Edit(int? id)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Project project = db.Projects.Find(id);
+            Project project = _repository.GetProjectById(id);
             if (project == null || !project.Client.ClientOwner.Equals(userName))
             {
                 return HttpNotFound();
@@ -105,9 +116,11 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Edit([Bind(Include = "ProjectID,ProjectName,ClientID")] Project project)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
+            var dbClient = _repository.GetProjectById(project.ProjectID).Client;
 
-            var dbClient = db.Clients.Where(c => c.ClientID == project.ClientID).ToList()[0]; // There can only be one client with this ID.
+
+            //var dbClient = db.Clients.Where(c => c.ClientID == project.ClientID).ToList()[0]; // There can only be one client with this ID.
 
             if (!dbClient.ClientOwner.Equals(userName))
             {
@@ -116,9 +129,7 @@ namespace FreelanceTimeTracker.Controllers
             project.Client = dbClient;
             if (ModelState.IsValid)
             {
-                db.Entry(project).State = EntityState.Modified;
-                //db.Projects.Attach(project);
-                db.SaveChanges();
+                _repository.UpdateProject(project);
                 return RedirectToAction("Index");
             }
             return View(project);
@@ -128,13 +139,13 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult Delete(int? id)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Project project = db.Projects.Find(id);
+            Project project = _repository.GetProjectById(id);
             if (project == null || !project.Client.ClientOwner.Equals(userName))
             {
                 return HttpNotFound();
@@ -148,41 +159,22 @@ namespace FreelanceTimeTracker.Controllers
         [Authorize]
         public ActionResult DeleteConfirmed(int id)
         {
-            var userName = User.Identity.GetUserName();
+            var userName = GetUserName();
 
-            Project project = db.Projects.Find(id);
+            Project project = _repository.GetProjectById(id);
             if (project.Client.ClientOwner.Equals(userName))
             {
-                db.Projects.Remove(project);
-                db.SaveChanges();
+                _repository.DeleteProject(project);
             }
-            
+
             return RedirectToAction("Index");
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private ICollection<Client> GetUsersClients()
-        {
-            var userName = User.Identity.GetUserName();
-
-            var clientList = db.Clients.Where(c => c.ClientOwner.Equals(userName));
-
-            return clientList.ToList();
-        }
-
-        private IEnumerable<SelectListItem> GetSelectedListItems(IEnumerable<Client> elements)
+        private IEnumerable<SelectListItem> GetSelectedListItems(List<Client> elements)
         {
             var selectedList = new List<SelectListItem>();
 
-            foreach(var element in elements)
+            foreach (var element in elements)
             {
                 selectedList.Add(new SelectListItem
                 {
@@ -192,6 +184,62 @@ namespace FreelanceTimeTracker.Controllers
             }
 
             return selectedList;
+        }
+    }
+
+    public interface IProjectRepository
+    {
+        List<Project> GetProjectsForUserName(string userName);
+        Project GetProjectById(int? clientId);
+        void AddProject(Project project);
+        void UpdateProject(Project project);
+        void DeleteProject(Project project);
+        List<Client> GetClientsForUserName(string userName);
+    }
+
+    public class ProjectRepository : IProjectRepository
+    {
+        private ApplicationDbContext _context;
+
+        public ProjectRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public void AddProject(Project project)
+        {
+            _context.Projects.Add(project);
+            _context.SaveChanges();
+        }
+
+        public void DeleteProject(Project project)
+        {
+            _context.Projects.Remove(project);
+            _context.SaveChanges();
+        }
+
+        public Project GetProjectById(int? projectId)
+        {
+            return _context.Projects.Find(projectId);
+        }
+
+        public List<Project> GetProjectsForUserName(string userName)
+        {
+            var projects = from p in _context.Projects select p;
+            return projects.Where(p => p.Client.ClientOwner.Equals(userName)).ToList();
+        }
+
+        public void UpdateProject(Project project)
+        {
+            _context.Entry(project).State = EntityState.Modified;
+            _context.SaveChanges();
+        }
+
+        public List<Client> GetClientsForUserName(string userName)
+        {
+            var clients = from c in _context.Clients select c;
+
+            return clients.Where(c => c.ClientOwner.Equals(userName)).ToList();
         }
     }
 }
