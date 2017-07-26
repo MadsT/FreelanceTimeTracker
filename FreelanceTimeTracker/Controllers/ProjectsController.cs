@@ -8,12 +8,13 @@ using System.Web;
 using System.Web.Mvc;
 using FreelanceTimeTracker.Models;
 using Microsoft.AspNet.Identity;
+using Moq;
 
 namespace FreelanceTimeTracker.Controllers
 {
     public class ProjectsController : Controller
     {
-        private IProjectRepository _repository;
+        private IProjectsRepository _repository;
         public Func<string> GetUserName;
 
 
@@ -23,7 +24,7 @@ namespace FreelanceTimeTracker.Controllers
             GetUserName = () => User.Identity.GetUserName();
         }
 
-        public ProjectsController(IProjectRepository repository)
+        public ProjectsController(IProjectsRepository repository)
         {
             _repository = repository;
         }
@@ -185,9 +186,22 @@ namespace FreelanceTimeTracker.Controllers
 
             return selectedList;
         }
+
+        public static ProjectsController CreateProjectsControllerAs(string userName, IProjectsRepository repository)
+        {
+            var mock = new Mock<ControllerContext>();
+            var controller = new ProjectsController(repository)
+            {
+                GetUserName = () => userName
+            };
+
+
+            controller.ControllerContext = mock.Object;
+            return controller;
+        }
     }
 
-    public interface IProjectRepository
+    public interface IProjectsRepository
     {
         List<Project> GetProjectsForUserName(string userName);
         Project GetProjectById(int? clientId);
@@ -197,7 +211,7 @@ namespace FreelanceTimeTracker.Controllers
         List<Client> GetClientsForUserName(string userName);
     }
 
-    public class ProjectRepository : IProjectRepository
+    public class ProjectRepository : IProjectsRepository
     {
         private ApplicationDbContext _context;
 
