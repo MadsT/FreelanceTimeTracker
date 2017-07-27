@@ -105,6 +105,7 @@
     <Compile Include="Controllers\ClientsControllerTest.cs" />
     <Compile Include="Controllers\ServicesControllerTest.cs" />
     <Compile Include="Controllers\ProjectsControllerTest.cs" />
+    <Compile Include="Controllers\ProjectsServicesControllerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

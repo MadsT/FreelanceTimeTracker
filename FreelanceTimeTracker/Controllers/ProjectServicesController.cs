@@ -36,6 +36,10 @@ namespace FreelanceTimeTracker.Controllers
         {
             var userName = GetUserName();
             List<ProjectService> projectServices = _repository.GetProjectServicesForUserName(userName);
+            if(projectServices == null)
+            {
+                return View();
+            }
             List<ProjectServiceViewModel> projectServiceVMList = new List<ProjectServiceViewModel>(projectServices.Count);
 
             foreach (ProjectService ps in projectServices)
