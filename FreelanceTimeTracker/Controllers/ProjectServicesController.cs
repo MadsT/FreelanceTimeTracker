@@ -163,6 +163,7 @@ namespace FreelanceTimeTracker.Controllers
             };
             var projects = _repository.GetAllProjects().Where(p => p.Client.ClientID == selectedClientId).ToList();
             
+            
             var jsonProjects = JsonConvert.SerializeObject(projects, Formatting.Indented, _jsonSettings);
 
 
