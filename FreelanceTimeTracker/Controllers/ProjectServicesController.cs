@@ -79,8 +79,21 @@ namespace FreelanceTimeTracker.Controllers
 
             if (ModelState.IsValid)
             {
-                _repository.AddProjectService(projectService);   
+                var savedProjectService = _repository.GetProjectServiceByIds(projectService.ProjectId, projectService.ServiceID);
+
+                if(savedProjectService == null)
+                {
+                    _repository.AddProjectService(projectService); 
+                }
+                else
+                {
+                    savedProjectService.HoursWorked += projectService.HoursWorked;
+                    _repository.UpdateProjectService(savedProjectService);
+                }
                 return RedirectToAction("Index");
+
+
+
             }
 
             
@@ -210,8 +223,14 @@ namespace FreelanceTimeTracker.Controllers
 
         public void AddProjectService(ProjectService projectService)
         {
-            _context.ProjectServices.Add(projectService);
-            _context.SaveChanges();
+            int projectServiceCount = _context.ProjectServices.Count(ps => ps.ProjectId == projectService.ProjectId && ps.ServiceID == projectService.ServiceID);
+
+            if (projectServiceCount == 0)
+            {
+                _context.ProjectServices.Add(projectService);
+                _context.SaveChanges();
+            }
+             
         }
 
         public void DeleteProjectService(ProjectService projectService)
