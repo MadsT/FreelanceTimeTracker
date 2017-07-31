@@ -240,6 +240,14 @@
     <Compile Include="Migrations\201707251629154_RequiredSelectedClient.Designer.cs">
       <DependentUpon>201707251629154_RequiredSelectedClient.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201707311615076_HoursWorkedPositive.cs" />
+    <Compile Include="Migrations\201707311615076_HoursWorkedPositive.Designer.cs">
+      <DependentUpon>201707311615076_HoursWorkedPositive.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201707311619150_HoursWorkedPositiveErrorMessage.cs" />
+    <Compile Include="Migrations\201707311619150_HoursWorkedPositiveErrorMessage.Designer.cs">
+      <DependentUpon>201707311619150_HoursWorkedPositiveErrorMessage.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Client.cs" />
@@ -369,6 +377,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201707251629154_RequiredSelectedClient.resx">
       <DependentUpon>201707251629154_RequiredSelectedClient.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707311615076_HoursWorkedPositive.resx">
+      <DependentUpon>201707311615076_HoursWorkedPositive.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201707311619150_HoursWorkedPositiveErrorMessage.resx">
+      <DependentUpon>201707311619150_HoursWorkedPositiveErrorMessage.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

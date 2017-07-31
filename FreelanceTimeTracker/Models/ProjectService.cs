@@ -21,6 +21,7 @@ namespace FreelanceTimeTracker.Models
         public virtual Service Service { get; set; }
 
         [Display(Name = "Hours Worked")]
+        [Range(1, int.MaxValue, ErrorMessage = "You must enter a positive number.")]
         public int HoursWorked { get; set; }
     }
 
@@ -38,6 +39,7 @@ namespace FreelanceTimeTracker.Models
         public virtual Service Service { get; set; }
 
         [Display(Name = "Hours Worked")]
+        [Range(1, int.MaxValue, ErrorMessage = "You must enter a positive number.")]
         public int HoursWorked { get; set; }
 
         [Display(Name = "Total Price")]
